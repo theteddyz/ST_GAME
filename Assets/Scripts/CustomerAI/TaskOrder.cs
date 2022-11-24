@@ -2,16 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using BehaviorTree;
+using UnityEngine.AI;
 public class TaskOrder : Node
 {
+   
     private Transform _transform;
     private Transform[] _waypoints;
     private int _currentWayPointIndex = 0;
     private float _speed = 2f;
-    
+    static public NavMeshAgent agent;
     private float _waitTime = 1f;
     private float _waitCounter = 0f;
     private bool _waiting = false;
+    
     public TaskOrder(Transform transform, Transform[] waypoints)
     {
         _transform = transform;
