@@ -7,21 +7,20 @@ using System;
 namespace CM_TaskSystem
 { public class Customer : Icustomer
     {
-        private UnityEngine.Object prefab = Resources.Load("Assets/Prefab/Units/Customer.prefab");
 
-       
-        private static NavMeshAgent agent;
+        
+
+
+        public GameObject gameObject;
+        private static NavMeshAgent unitObject;
 
 
        
 
         public static Customer Create(Vector3 position)
         {
-            if (agent == null)
-            {
-
-                agent = new NavMeshAgent();
-            }
+          
+           
 
             return new Customer(position);
         }
@@ -30,20 +29,21 @@ namespace CM_TaskSystem
         {
             
          
+          
             
         }
 
         public void MoveTo(Vector3 position, Action onArrivedAtPosition = null)
         {
             
-            agent.SetDestination(position);
-            if (!agent.pathPending)
+            unitObject.SetDestination(position);
+            if (!unitObject.pathPending)
             {
-                if (agent.remainingDistance <= agent.stoppingDistance)
+                if (unitObject.remainingDistance <= unitObject.stoppingDistance)
                 {
-                    if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
+                    if (!unitObject.hasPath || unitObject.velocity.sqrMagnitude == 0f)
                     {
-                        agent.SetDestination(agent.pathEndPosition);
+                        unitObject.SetDestination(unitObject.pathEndPosition);
                     }
                 }
             }
@@ -51,7 +51,7 @@ namespace CM_TaskSystem
 
         public bool IsMoving()
         {
-            return agent.hasPath;
+            return unitObject.hasPath;
         }
 
        

@@ -4313,6 +4313,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73f405525aa4de543bf748318c2fa01b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  customerPrefab: {fileID: 0}
+  actualPrefab: {fileID: 0}
 --- !u!4 &961432782
 Transform:
   m_ObjectHideFlags: 0
@@ -8849,6 +8851,10 @@ PrefabInstance:
     - target: {fileID: 2444668934448131917, guid: 890c37d382d6ec341a55d6d99a447211, type: 3}
       propertyPath: m_Name
       value: Customer
+      objectReference: {fileID: 0}
+    - target: {fileID: 2444668934448131917, guid: 890c37d382d6ec341a55d6d99a447211, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2444668934448131922, guid: 890c37d382d6ec341a55d6d99a447211, type: 3}
       propertyPath: m_RootOrder
