@@ -4,11 +4,12 @@ using Unity.VisualScripting;
 using UnityEngine;
 using System;
 
-namespace CM_TaskSystem
+namespace TaskSystem
 {
     
     public interface Icustomer
     {
-        void MoveTo(Vector3 position, Action onArrivedAtPosition = null);
+        void MoveTo(Vector3 position);
+        
     }
 }

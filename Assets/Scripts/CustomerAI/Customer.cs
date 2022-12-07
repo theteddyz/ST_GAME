@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine.AI;
 using UnityEngine;
 using System;
+using ForTeddy.Databases;
+using Random = UnityEngine.Random;
 
-namespace CM_TaskSystem
+namespace TaskSystem
 { public class Customer : Icustomer
     {
 
@@ -12,47 +14,73 @@ namespace CM_TaskSystem
 
 
         public GameObject gameObject;
-        private static NavMeshAgent unitObject;
+   
+        private  NavMeshAgent unitObject;
+        
 
 
-       
+        public void Awake()
+        {
+           
+            Initialize();
+            
+        }
+
+        public void Initialize()
+        {
+            
+          
+            Debug.Log("Customer initialization");
+            
+        }
 
         public static Customer Create(Vector3 position)
         {
-          
-           
-
             return new Customer(position);
         }
 
         private Customer(Vector3 position)
         {
             
-         
-          
+            gameObject = GameObject.Instantiate(DatabaseManager.Instance.CustomerDatabase.GetRandomCustomer(), position, Quaternion.identity);
+            
             
         }
 
-        public void MoveTo(Vector3 position, Action onArrivedAtPosition = null)
+        public void MoveTo(Vector3 position)
         {
+           
             
-            unitObject.SetDestination(position);
-            if (!unitObject.pathPending)
+            NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
+            
+            
+            agent.destination = position;
+
+           
+
+        }
+
+       public  bool pathComplete()
+        {
+            NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
+            if ( Vector3.Distance( agent.destination, agent.transform.position) <= agent.stoppingDistance)
             {
-                if (unitObject.remainingDistance <= unitObject.stoppingDistance)
+                if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                 {
-                    if (!unitObject.hasPath || unitObject.velocity.sqrMagnitude == 0f)
-                    {
-                        unitObject.SetDestination(unitObject.pathEndPosition);
-                    }
+                    return true;
                 }
             }
+ 
+            return false;
         }
 
         public bool IsMoving()
         {
             return unitObject.hasPath;
         }
+
+
+      
 
        
 

@@ -13,12 +13,7 @@ public class MovementSM : StateMachine
     public Idle idleState;
     [HideInInspector]
     public Moving movingState;
-    [HideInInspector]
-    public NextTask nextTask;
     public static NavMeshAgent agent;
-    public static int currentWaypointIndex = 0;
-    public static Transform[] _waypoints;
-    public Transform[] editorWaypoints;
     public static float speed = 0.1f;
 
    
@@ -30,14 +25,12 @@ public class MovementSM : StateMachine
     private void Awake()
     {
 
-        _waypoints = editorWaypoints;
-        Debug.Log(_waypoints.Length);
+        
+       
         agent = GetComponent<NavMeshAgent>();
-        agent.updateRotation = false;
-        agent.updateUpAxis = false;
         idleState = new Idle(this);
         movingState = new Moving(this);
-        nextTask = new NextTask(this);
+
 
     }
 

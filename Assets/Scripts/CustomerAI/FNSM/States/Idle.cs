@@ -6,7 +6,9 @@ using UnityEngine.AI;
 public class Idle : BaseState
 {
     private MovementSM _sm;
-    private bool _noTask;
+    public static bool _noTask;
+    
+    public static Transform newPosition;
 
 
     public Idle(MovementSM stateMachine) : base("Idle", stateMachine)
@@ -23,8 +25,12 @@ public class Idle : BaseState
 
     public override void UpdateLogic()
     {
-       
-            stateMachine.ChangeState(_sm.nextTask);
+
+        if (_noTask == false)
+        {
+            
+            stateMachine.ChangeState(_sm.movingState);
+        }
         
         
     }

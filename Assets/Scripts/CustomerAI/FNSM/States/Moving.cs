@@ -28,14 +28,14 @@ public class Moving : BaseState
     public override void UpdatePhysics()
     {
         
-        Transform location = NextTask.nextTaskLocation;
+        Transform location = Idle.newPosition;
      
         if (_moving = true)
         {
             if (Vector2.Distance(MovementSM.agent.transform.position, location.position) < 0.01f)
             {
                 
-                MovementSM.currentWaypointIndex = (MovementSM.currentWaypointIndex + 1) % MovementSM._waypoints.Length;
+                
                 _moving = false;
                 stateMachine.ChangeState(_sm.idleState);
 
