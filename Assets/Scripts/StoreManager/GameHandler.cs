@@ -22,11 +22,14 @@ namespace TaskSystem
          public static List<String> menu = new List<string>();
          public static  List<Seats> seats = new List<Seats>();
         private GameObject[] chairs;
+        [SerializeField] public Sprite sittingSprite;
+       
 
 
 
         private void Start()
         {
+
             menu.Add("coffee");
             menu.Add("cake");
             menu.Add("muffin");
@@ -45,15 +48,13 @@ namespace TaskSystem
                 seats.Add(obj);
 
             }
+           
             taskSystem = new TaskSystem();
 
-            Customer customer = Customer.Create(waypoints[0].transform.position);
-
-            CustomerTaskAI customerTaskAI = customer.gameObject.AddComponent<CustomerTaskAI>();
-            customerTaskAI.Setup(customer, taskSystem);
-
-            TaskSystem.Task task = new TaskSystem.Task.MoveToPosition { targetPosition = waypoints[1].transform.position };
-            taskSystem.AddTask(task);
+            StartCoroutine(spawnCustomer());
+            
+            Debug.Log(seats.Count);
+            
            
 
         }
@@ -80,15 +81,23 @@ namespace TaskSystem
 
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                TaskSystem.Task task = new TaskSystem.Task.ChooseSeat { };
-                taskSystem.AddTask(task);
-                
-            }
-            
 
-           
+
+
+
+        }
+
+        IEnumerator spawnCustomer()
+        {
+            yield return new WaitForSeconds(10);
+            Customer customer = Customer.Create(waypoints[0].transform.position);
+
+            CustomerTaskAI customerTaskAI = customer.gameObject.AddComponent<CustomerTaskAI>();
+            customerTaskAI.Setup(customer, taskSystem);
+
+            TaskSystem.Task task = new TaskSystem.Task.MoveToPosition { targetPosition = waypoints[1].transform.position };
+            taskSystem.AddTask(task);
+            StartCoroutine(spawnCustomer());
 
         }
     }

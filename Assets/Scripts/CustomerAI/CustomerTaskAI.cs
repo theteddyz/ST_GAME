@@ -8,6 +8,8 @@ using CodeMonkey;
 using CodeMonkey.Utils;
 using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEditor.VersionControl;
 using UnityEngine.AI;
 
 
@@ -25,42 +27,22 @@ namespace TaskSystem
         private TaskSystem taskSystem;
         private State state;
         private float waitingTimer;
-        public  bool done = false;
+        
 
-        public bool isThere;
+
+
         public int choiceNumber;
-        public int seatChoiceNumber;
+
         public void Setup(Icustomer customer, TaskSystem taskSystem)
         {
             this.customer = customer;
             this.taskSystem = taskSystem;
             state = State.WaitingForNextTask;
         }
+        
 
         private void Update()
         {
-           
-            
-            NavMeshAgent agent = this.gameObject.GetComponent<NavMeshAgent>();
-            
-            if (done == false)
-            {
-                if (!agent.pathPending)
-                {
-                    if (agent.remainingDistance <= agent.stoppingDistance)
-                    {
-                        if (agent.hasPath || agent.velocity.sqrMagnitude == 0f)
-                        {
-                            done = true;
-                            state = State.WaitingForNextTask;
-
-                            
-                        }
-                    }
-                       
-                }
-            }
-            
             
             switch (state)
             {
@@ -96,25 +78,20 @@ namespace TaskSystem
                
                if (task is TaskSystem.Task.MoveToPosition)
                {
-                   ExecuteTask_MoveToPosition(task as TaskSystem.Task.MoveToPosition);
+                   StartCoroutine(ExecuteTask_MoveToPosition(task as TaskSystem.Task.MoveToPosition));
 
-                  
-
-                    return;
-                  
-
+                   return;
+                   
                }
                if (task is TaskSystem.Task.Order)
                {
                    StartCoroutine(ExecuteTask_Order(task as TaskSystem.Task.Order));
-                   
                    return;
                }
 
                if (task is TaskSystem.Task.ChooseSeat)
                {
                    StartCoroutine(ExecuteTask_ChooseSeat(task as TaskSystem.Task.ChooseSeat));
-                   
                    return;
                }
            }
@@ -122,24 +99,36 @@ namespace TaskSystem
            
         }
 
-        private void ExecuteTask_MoveToPosition(TaskSystem.Task.MoveToPosition moveToPositiontask)
+        IEnumerator ExecuteTask_MoveToPosition(TaskSystem.Task.MoveToPosition moveToPositiontask)
         {
-            done = false;
-            
+           
+            NavMeshAgent agent = this.gameObject.GetComponent<NavMeshAgent>();
             Debug.Log("ExecutingTask");
             customer.MoveTo(moveToPositiontask.targetPosition);
+            isNotMoving();
+            Debug.Log(isNotMoving());
+            yield return new WaitUntil((() => isNotMoving() == true));
 
-            
+         
+            state = State.WaitingForNextTask;
+            yield return new WaitForSeconds(1);
+
+
+
+
+
 
 
 
         }
+
+
         
 
         IEnumerator ExecuteTask_Order(TaskSystem.Task.Order orderTask)
         {
-            
-            done = true;
+
+            int selectedSeatChoice;
             ThinkingOrder();
 
             yield return new WaitForSeconds(5);
@@ -148,52 +137,80 @@ namespace TaskSystem
 
            yield return new WaitForSeconds(2);
            HideOrder();
-
-
-
-
+           
+           SelectSeat(0);
+           selectedSeatChoice = SelectSeat(0);
+           if (selectedSeatChoice == -2)
+           {
+               yield break;
+           }
+         
+           customer.MoveTo(GameHandler.seats[selectedSeatChoice].chair.transform.position);
+           isNotMoving();
+           yield return new WaitUntil((() => isNotMoving() == true));
+           SittingDown(GameHandler.seats[selectedSeatChoice].chair.transform);
+           GameHandler.seats[selectedSeatChoice].isTaken = true;
+           GameHandler.seats.RemoveAt(selectedSeatChoice);
 
         }
 
         IEnumerator ExecuteTask_ChooseSeat(TaskSystem.Task.ChooseSeat chooseSeat)
         {
+            int selectedSeatChoice;
 
-            
-            
-            seatChoiceNumber = UnityEngine.Random.Range(0, GameHandler.seats.Count);
-            Debug.Log(seatChoiceNumber);
-            while (GameHandler.seats[choiceNumber].isTaken = true)
+            SelectSeat(0);
+            selectedSeatChoice = SelectSeat(0);
+
+            if (selectedSeatChoice == -2)
             {
-                yield return null;
-                
-                customer.MoveTo(GameHandler.seats[seatChoiceNumber].chair.transform.position);
-                
-                GameHandler.seats[seatChoiceNumber].isTaken = true;
-                yield return new WaitForSeconds(2f);
-                SittingDown();
-                
-                
+                yield break;
+            }
+         
+            customer.MoveTo(GameHandler.seats[selectedSeatChoice].chair.transform.position);
+            isNotMoving();
+            yield return new WaitUntil((() => isNotMoving() == true));
+            SittingDown(GameHandler.seats[selectedSeatChoice].chair.transform);
+            GameHandler.seats[selectedSeatChoice].isTaken = true;
+            GameHandler.seats.RemoveAt(selectedSeatChoice);
+        }
 
-
-
+        private int SelectSeat(int seatChoiceNumber)
+        {
+            
+            if (GameHandler.seats.Count == 0)
+            {
+                Debug.Log("all seats are taken");
+                return -2;
+            }
+            else
+            {
+                 seatChoiceNumber = UnityEngine.Random.Range(0, GameHandler.seats.Count);
+           
+                if (GameHandler.seats[seatChoiceNumber].isTaken = true)
+                {
+                    seatChoiceNumber = UnityEngine.Random.Range(0, GameHandler.seats.Count);
+                }
 
             }
+
+            return seatChoiceNumber;
+
+        }
+        private void SittingDown(Transform chair)
+        {
+            NavMeshAgent agent = this.gameObject.GetComponent<NavMeshAgent>();
             
+                
             
-            
-            
-            
-
-
-
-
-
-
+            gameObject.transform.position = chair.transform.position ;
+            gameObject.GetComponent<SpriteRenderer>().enabled = false;
+            gameObject.transform.GetChild(1).gameObject.SetActive(true);
+            GetComponent<NavMeshAgent>().enabled = false;
+            GetComponent<CustomerTaskAI>().enabled = false;
+            GetComponent<BoxCollider2D>().isTrigger = true;
 
 
         }
-
-
 
         private void SelectOrder()
         {
@@ -233,17 +250,26 @@ namespace TaskSystem
             {
                 gameObject.transform.GetChild(0).gameObject.transform.GetChild(2).gameObject.SetActive(false);
             }
-            state = State.WaitingForNextTask;
         }
-
-        private void SittingDown()
+        bool isNotMoving()
         {
             NavMeshAgent agent = this.gameObject.GetComponent<NavMeshAgent>();
-            if (agent.remainingDistance == 0)
+            if (!agent.pathPending)
             {
-                Debug.Log("FUCKFUCKFUCK");
+                if (agent.remainingDistance <= agent.stoppingDistance)
+                {
+                    if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
+                    {
+                        return true;
+                    }
+                }
             }
+            
+
+            return false;
         }
+
+        
     }
 
     
