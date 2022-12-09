@@ -9,19 +9,21 @@ using ForTeddy.Databases;
 using Unity.VisualScripting;
 using UnityEngine.AI;
 
-namespace TaskSystem
-{
+
+
     
 
     public class GameHandler : MonoBehaviour
     {
         
-   
-        private TaskSystem taskSystem;
-        [SerializeField] public List<GameObject> waypoints;
-         public static List<String> menu = new List<string>();
-         public static  List<Seats> seats = new List<Seats>();
+        
+        public static List<_waypoint> waypoints = new List<_waypoint>();
+        public static List<String> menu = new List<String>();
+        public static  List<Seats> seats = new List<Seats>();
+        
+
         private GameObject[] chairs;
+        private GameObject[] waypoint;
         [SerializeField] public Sprite sittingSprite;
        
 
@@ -29,6 +31,7 @@ namespace TaskSystem
 
         private void Start()
         {
+            
 
             menu.Add("coffee");
             menu.Add("cake");
@@ -48,15 +51,22 @@ namespace TaskSystem
                 seats.Add(obj);
 
             }
-           
-            taskSystem = new TaskSystem();
 
+            waypoint = GameObject.FindGameObjectsWithTag("Waypoint");
+            waypoints.Clear();
+            for (int i = 0; i < waypoint.Length; i++)
+            {
+                var _obj = new _waypoint()
+                {
+                    addedWaypoint =  waypoint[i]
+                };
+                waypoints.Add(_obj);
+
+            }
+            
+            
             StartCoroutine(spawnCustomer());
             
-            Debug.Log(seats.Count);
-            
-           
-
         }
         [System.Serializable]
         public class Seats
@@ -65,6 +75,24 @@ namespace TaskSystem
             public bool isTaken = false;
             
         }
+        [System.Serializable]
+        public class _waypoint
+        {
+            public GameObject addedWaypoint;
+            
+            
+        }
+        
+        [System.Serializable]
+        public class _Customer
+        {
+            public GameObject _customer;
+            
+            
+        }
+        
+        
+        
         
 
         private void OnTriggerEnter2D(Collider2D col)
@@ -72,9 +100,8 @@ namespace TaskSystem
             
             if (col.gameObject.tag == "Customer")
             {
-                Debug.Log("AAAAAAAAAAAAA");
-                TaskSystem.Task task = new TaskSystem.Task.Order {  };
-                taskSystem.AddTask(task);
+
+                StartCoroutine(col.gameObject.GetComponent<CustomerTaskAI>().ExecuteTask_Order());
             }
             
         }
@@ -82,21 +109,27 @@ namespace TaskSystem
         private void Update()
         {
 
+            
 
 
+ 
 
         }
 
         IEnumerator spawnCustomer()
         {
-            yield return new WaitForSeconds(10);
-            Customer customer = Customer.Create(waypoints[0].transform.position);
+            
+            yield return new WaitForSeconds(3);
+            GameObject gameObject;
+            int ranroll = UnityEngine.Random.Range(0, 4);
+            gameObject = Instantiate(DatabaseManager.Instance.CustomerDatabase.GetRandomCustomer(), waypoint[ranroll].transform.position, Quaternion.identity);
+            
+            CustomerTaskAI customerTaskAI = gameObject.AddComponent<CustomerTaskAI>();
+            NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
+    
 
-            CustomerTaskAI customerTaskAI = customer.gameObject.AddComponent<CustomerTaskAI>();
-            customerTaskAI.Setup(customer, taskSystem);
-
-            TaskSystem.Task task = new TaskSystem.Task.MoveToPosition { targetPosition = waypoints[1].transform.position };
-            taskSystem.AddTask(task);
+            agent.destination = waypoints[5].addedWaypoint.transform.position;
+            
             StartCoroutine(spawnCustomer());
 
         }
@@ -104,4 +137,3 @@ namespace TaskSystem
     
     
     
-}

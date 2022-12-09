@@ -7,6 +7,8 @@ TagManager:
   - Order
   - Customer
   - Seat
+  - Waypoint
+  - QueuePosition
   layers:
   - Default
   - TransparentFX

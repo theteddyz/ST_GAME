@@ -30,7 +30,7 @@ public class Moving : BaseState
         
         Transform location = Idle.newPosition;
      
-        if (_moving = true)
+        if (_moving == true)
         {
             if (Vector2.Distance(MovementSM.agent.transform.position, location.position) < 0.01f)
             {

@@ -4,131 +4,80 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using TaskSystem;
 using UnityEngine;
-using CodeMonkey;
-using CodeMonkey.Utils;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.VersionControl;
 using UnityEngine.AI;
+using System.Linq;
 
 
-namespace TaskSystem
-{
+
     public class CustomerTaskAI : MonoBehaviour
     {
         
-        private enum State
-        {
-           WaitingForNextTask,
-           ExecutingTask,
-        }
-        private Icustomer customer;
-        private TaskSystem taskSystem;
+        
         private State state;
         private float waitingTimer;
+        public bool  OrderValidator = false;
+        public int selectedSeatChoice;
+        private bool allIsTaken =false;
         
+
+
+
+
 
 
 
         public int choiceNumber;
 
-        public void Setup(Icustomer customer, TaskSystem taskSystem)
+
+
+        private void Start()
         {
-            this.customer = customer;
-            this.taskSystem = taskSystem;
-            state = State.WaitingForNextTask;
+            
+            
+         
+            
         }
         
 
+
         private void Update()
         {
-            
-            switch (state)
+            if (OrderValidator == true)
             {
-                case State.WaitingForNextTask:
-                    //Waiting to request new task
-                    waitingTimer -= Time.deltaTime;
-                    if (waitingTimer <= 0)
-                    {
-                        float waitingTimerMax = .2f;
-                        waitingTimer = waitingTimerMax;
-                        RequestNextTask();
-                    }
-                    break;
-                case State.ExecutingTask:
-                    break;
-                    
-                    
+                StartCoroutine(ExecuteTask_CheckOrder());
+                OrderValidator = false;
             }
-        }
-
-        private void RequestNextTask()
-        {
             
-            Debug.Log("Requesting Next Task");
-           TaskSystem.Task task =  taskSystem.RequestNextTask();
-           if (task == null)
-           {
-               state = State.WaitingForNextTask;
-           }
-           else
-           {
-               state = State.ExecutingTask;
-               
-               if (task is TaskSystem.Task.MoveToPosition)
-               {
-                   StartCoroutine(ExecuteTask_MoveToPosition(task as TaskSystem.Task.MoveToPosition));
-
-                   return;
-                   
-               }
-               if (task is TaskSystem.Task.Order)
-               {
-                   StartCoroutine(ExecuteTask_Order(task as TaskSystem.Task.Order));
-                   return;
-               }
-
-               if (task is TaskSystem.Task.ChooseSeat)
-               {
-                   StartCoroutine(ExecuteTask_ChooseSeat(task as TaskSystem.Task.ChooseSeat));
-                   return;
-               }
-           }
-           
-           
+            
         }
 
-        IEnumerator ExecuteTask_MoveToPosition(TaskSystem.Task.MoveToPosition moveToPositiontask)
+      
+        public IEnumerator ExecuteTask_MoveToPosition()
         {
            
             NavMeshAgent agent = this.gameObject.GetComponent<NavMeshAgent>();
             Debug.Log("ExecutingTask");
-            customer.MoveTo(moveToPositiontask.targetPosition);
             isNotMoving();
-            Debug.Log(isNotMoving());
             yield return new WaitUntil((() => isNotMoving() == true));
 
          
-            state = State.WaitingForNextTask;
+            
             yield return new WaitForSeconds(1);
-
-
-
-
-
-
-
-
+            
         }
 
 
         
 
-        IEnumerator ExecuteTask_Order(TaskSystem.Task.Order orderTask)
+       public IEnumerator ExecuteTask_Order()
         {
+           
 
-            int selectedSeatChoice;
+            
             ThinkingOrder();
 
             yield return new WaitForSeconds(5);
@@ -138,76 +87,89 @@ namespace TaskSystem
            yield return new WaitForSeconds(2);
            HideOrder();
            
-           SelectSeat(0);
-           selectedSeatChoice = SelectSeat(0);
-           if (selectedSeatChoice == -2)
-           {
-               yield break;
-           }
-         
-           customer.MoveTo(GameHandler.seats[selectedSeatChoice].chair.transform.position);
-           isNotMoving();
-           yield return new WaitUntil((() => isNotMoving() == true));
-           SittingDown(GameHandler.seats[selectedSeatChoice].chair.transform);
-           GameHandler.seats[selectedSeatChoice].isTaken = true;
-           GameHandler.seats.RemoveAt(selectedSeatChoice);
+           StartCoroutine(ExecuteTask_ChooseSeat());
+           yield break;
+
 
         }
 
-        IEnumerator ExecuteTask_ChooseSeat(TaskSystem.Task.ChooseSeat chooseSeat)
+        IEnumerator ExecuteTask_ChooseSeat()
         {
-            int selectedSeatChoice;
+            NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
 
-            SelectSeat(0);
-            selectedSeatChoice = SelectSeat(0);
-
-            if (selectedSeatChoice == -2)
-            {
-                yield break;
-            }
-         
-            customer.MoveTo(GameHandler.seats[selectedSeatChoice].chair.transform.position);
+            Debug.Log("Starting Coroutine");
+            
+          
+            StartCoroutine(SelectSeat());
+            
+            agent.destination = (GameHandler.seats[selectedSeatChoice].chair.transform.position);
             isNotMoving();
             yield return new WaitUntil((() => isNotMoving() == true));
             SittingDown(GameHandler.seats[selectedSeatChoice].chair.transform);
-            GameHandler.seats[selectedSeatChoice].isTaken = true;
-            GameHandler.seats.RemoveAt(selectedSeatChoice);
+            yield break;
+            
+            
+
         }
 
-        private int SelectSeat(int seatChoiceNumber)
+        public IEnumerator ExecuteTask_CheckOrder()
+        {
+            NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
+            gameObject.tag = "Untagged";
+            int ranroll = UnityEngine.Random.Range(0, 4);
+
+            yield return new WaitForSeconds(5f);
+            GetComponent<NavMeshAgent>().enabled = true;
+            GetComponent<CustomerTaskAI>().enabled = true;
+            gameObject.GetComponent<SpriteRenderer>().enabled = true;
+            gameObject.transform.GetChild(1).gameObject.SetActive(false);
+            GameHandler.seats[selectedSeatChoice].isTaken = false;
+            agent.destination =(GameHandler.waypoints[ranroll].addedWaypoint.transform.position);
+            
+            
+            
+            isNotMoving();
+            yield return new WaitUntil((() => isNotMoving() == true));
+            yield return new WaitForSeconds(1);
+            Destroy(gameObject);
+            yield break;
+            
+        }
+
+        IEnumerator SelectSeat()
         {
             
-            if (GameHandler.seats.Count == 0)
+            bool isTaken = true;
+            selectedSeatChoice = UnityEngine.Random.Range(0, GameHandler.seats.Count);
+            do
             {
-                Debug.Log("all seats are taken");
-                return -2;
-            }
-            else
-            {
-                 seatChoiceNumber = UnityEngine.Random.Range(0, GameHandler.seats.Count);
-           
-                if (GameHandler.seats[seatChoiceNumber].isTaken = true)
-                {
-                    seatChoiceNumber = UnityEngine.Random.Range(0, GameHandler.seats.Count);
-                }
+               
 
-            }
+                selectedSeatChoice = UnityEngine.Random.Range(0, GameHandler.seats.Count);
+                isTaken = GameHandler.seats[selectedSeatChoice].isTaken;
+                
+                
 
-            return seatChoiceNumber;
+
+            } while (isTaken == true);
+            
+            yield break;
+            
+
+
+            
 
         }
         private void SittingDown(Transform chair)
         {
-            NavMeshAgent agent = this.gameObject.GetComponent<NavMeshAgent>();
-            
-                
-            
+            AllIsTaken();
             gameObject.transform.position = chair.transform.position ;
             gameObject.GetComponent<SpriteRenderer>().enabled = false;
             gameObject.transform.GetChild(1).gameObject.SetActive(true);
             GetComponent<NavMeshAgent>().enabled = false;
             GetComponent<CustomerTaskAI>().enabled = false;
             GetComponent<BoxCollider2D>().isTrigger = true;
+            gameObject.AddComponent<OrderChecker>();
 
 
         }
@@ -265,14 +227,63 @@ namespace TaskSystem
                 }
             }
             
-
             return false;
         }
+
+        private bool AllIsTaken()
+        {
+            for (int i = 0; i < GameHandler.seats.Count; i++)
+            {
+                if (GameHandler.seats[i].isTaken == false)
+                {
+                    allIsTaken = false;
+                    return false;
+                }
+            }
+            allIsTaken = true;
+
+            return true;
+        }
+        
+
+        public IEnumerator SeatDisable()
+        {
+            GameHandler.seats[selectedSeatChoice].isTaken = true;
+            Debug.Log(GameHandler.seats[selectedSeatChoice].isTaken);
+            yield break;
+        }
+
+       public IEnumerator DestroyCustomer()
+       {
+           Debug.Log("AHHHHHHHH");
+           StartCoroutine(SetExit());
+           
+
+           StartCoroutine(VerifyExit());
+           yield break;
+
+       }
+
+       IEnumerator SetExit()
+       {
+           NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
+           Debug.Log("DestroyCustomer");
+           int ranroll = UnityEngine.Random.Range(0, 4);
+           agent.destination = (GameHandler.waypoints[ranroll].addedWaypoint.transform.position);
+           
+           yield break;
+       }
+
+       IEnumerator VerifyExit()
+       {
+           isNotMoving();
+           yield return new WaitUntil((() => isNotMoving() == true));
+           yield return new WaitForSeconds(1);
+           Destroy(gameObject);
+           yield break;
+       }
 
         
     }
 
-    
-    
-}
 
