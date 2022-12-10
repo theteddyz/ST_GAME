@@ -22,6 +22,7 @@ using System.Linq;
         public bool  OrderValidator = false;
         public int selectedSeatChoice;
         private bool allIsTaken =false;
+        public int orginLocation;
         
 
 
@@ -51,8 +52,7 @@ using System.Linq;
                 StartCoroutine(ExecuteTask_CheckOrder());
                 OrderValidator = false;
             }
-            
-            
+
         }
 
       
@@ -60,7 +60,6 @@ using System.Linq;
         {
            
             NavMeshAgent agent = this.gameObject.GetComponent<NavMeshAgent>();
-            Debug.Log("ExecutingTask");
             isNotMoving();
             yield return new WaitUntil((() => isNotMoving() == true));
 
@@ -154,10 +153,10 @@ using System.Linq;
             } while (isTaken == true);
             
             yield break;
-            
+           
 
 
-            
+
 
         }
         private void SittingDown(Transform chair)
@@ -213,20 +212,16 @@ using System.Linq;
                 gameObject.transform.GetChild(0).gameObject.transform.GetChild(2).gameObject.SetActive(false);
             }
         }
-        bool isNotMoving()
+         bool isNotMoving()
         {
             NavMeshAgent agent = this.gameObject.GetComponent<NavMeshAgent>();
             if (!agent.pathPending)
-            {
                 if (agent.remainingDistance <= agent.stoppingDistance)
-                {
                     if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                     {
                         return true;
                     }
-                }
-            }
-            
+
             return false;
         }
 
@@ -249,13 +244,12 @@ using System.Linq;
         public IEnumerator SeatDisable()
         {
             GameHandler.seats[selectedSeatChoice].isTaken = true;
-            Debug.Log(GameHandler.seats[selectedSeatChoice].isTaken);
             yield break;
         }
 
        public IEnumerator DestroyCustomer()
        {
-           Debug.Log("AHHHHHHHH");
+           
            StartCoroutine(SetExit());
            
 
@@ -267,9 +261,17 @@ using System.Linq;
        IEnumerator SetExit()
        {
            NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
-           Debug.Log("DestroyCustomer");
-           int ranroll = UnityEngine.Random.Range(0, 4);
-           agent.destination = (GameHandler.waypoints[ranroll].addedWaypoint.transform.position);
+           if (orginLocation == 0 || orginLocation == 1)
+           {
+               int exitLocation = UnityEngine.Random.Range(2, 3);
+               agent.destination = (GameHandler.waypoints[exitLocation].addedWaypoint.transform.position);
+           }
+           else
+           {
+               int exitLocation = UnityEngine.Random.Range(0, 1);
+               agent.destination = (GameHandler.waypoints[exitLocation].addedWaypoint.transform.position);
+           }
+           
            
            yield break;
        }

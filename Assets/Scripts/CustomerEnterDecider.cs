@@ -9,7 +9,8 @@ using UnityEngine.AI;
 
     public class CustomerEnterDecider : MonoBehaviour
     {
-        private QueueManager queueManager;
+        public QueueManager queueManager;
+        public GameHandler gameHandler;
         private void OnTriggerEnter2D(Collider2D col)
         {
             NavMeshAgent agent = col.gameObject.GetComponent<NavMeshAgent>();
@@ -17,16 +18,22 @@ using UnityEngine.AI;
              
             if (col.gameObject.tag == "Customer")
             {
-                Debug.Log("Hit first collider");
+                
                 int ranroll = UnityEngine.Random.Range(0, 2);
-                if (ranroll == 0)
+                if (ranroll == 0 && queueManager.customerList.Count < 5)
                 {
-                    agent.destination = new Vector3(3, -9, 0);
+                    agent.destination = queueManager.entrancePosition;
+
+                    if (queueManager.customerList.Count == 1) 
+                    {
+                        gameHandler.isOrdering = true;
+                    }
 
                 }
                 else
                 {
                     StartCoroutine(col.gameObject.GetComponent<CustomerTaskAI>().DestroyCustomer());
+                    col.gameObject.tag = "Untagged";
                 }
             }
         }

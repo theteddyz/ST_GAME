@@ -20,11 +20,12 @@ using UnityEngine.AI;
         public static List<_waypoint> waypoints = new List<_waypoint>();
         public static List<String> menu = new List<String>();
         public static  List<Seats> seats = new List<Seats>();
-        
-
         private GameObject[] chairs;
         private GameObject[] waypoint;
         [SerializeField] public Sprite sittingSprite;
+        private QueueManager queueManger;
+        public  bool isOrdering;
+        
        
 
 
@@ -63,10 +64,10 @@ using UnityEngine.AI;
                 waypoints.Add(_obj);
 
             }
-            
-            
+
+
             StartCoroutine(spawnCustomer());
-            
+
         }
         [System.Serializable]
         public class Seats
@@ -101,20 +102,18 @@ using UnityEngine.AI;
             if (col.gameObject.tag == "Customer")
             {
 
+
                 StartCoroutine(col.gameObject.GetComponent<CustomerTaskAI>().ExecuteTask_Order());
+                isOrdering = true;
             }
             
         }
 
-        private void Update()
+        private void OnTriggerExit2D(Collider2D col)
         {
-
-            
-
-
- 
-
+            StartCoroutine(IsOrderingSwitch(col.gameObject));
         }
+        
 
         IEnumerator spawnCustomer()
         {
@@ -122,17 +121,31 @@ using UnityEngine.AI;
             yield return new WaitForSeconds(3);
             GameObject gameObject;
             int ranroll = UnityEngine.Random.Range(0, 4);
+            
             gameObject = Instantiate(DatabaseManager.Instance.CustomerDatabase.GetRandomCustomer(), waypoint[ranroll].transform.position, Quaternion.identity);
             
             CustomerTaskAI customerTaskAI = gameObject.AddComponent<CustomerTaskAI>();
             NavMeshAgent agent = gameObject.GetComponent<NavMeshAgent>();
+            gameObject.GetComponent<CustomerTaskAI>().orginLocation = ranroll;
     
 
             agent.destination = waypoints[5].addedWaypoint.transform.position;
-            
             StartCoroutine(spawnCustomer());
+            
 
         }
+
+        IEnumerator IsOrderingSwitch(GameObject customer)
+        {
+            yield return new WaitForSeconds(4);
+            if (customer.tag == "Customer")
+            {
+                isOrdering = false;
+            }
+        }
+
+        
+
     }
     
     
