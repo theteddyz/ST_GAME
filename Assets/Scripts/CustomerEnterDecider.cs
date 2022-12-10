@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TaskSystem;
+using Unity.VisualScripting;
 using UnityEngine.AI;
 
 
@@ -20,14 +21,11 @@ using UnityEngine.AI;
             {
                 
                 int ranroll = UnityEngine.Random.Range(0, 2);
-                if (ranroll == 0 && queueManager.customerList.Count < 5)
+                if (ranroll == 0 && queueManager.customerList.Count < 4 )
                 {
-                    agent.destination = queueManager.entrancePosition;
+                    StartCoroutine(GrabCustomer(col.gameObject, queueManager.entrancePosition));
 
-                    if (queueManager.customerList.Count == 1) 
-                    {
-                        gameHandler.isOrdering = true;
-                    }
+
 
                 }
                 else
@@ -36,6 +34,15 @@ using UnityEngine.AI;
                     col.gameObject.tag = "Untagged";
                 }
             }
+        }
+
+        IEnumerator GrabCustomer(GameObject customer, Vector3 position)
+        {
+            yield return new WaitForSeconds(2);
+            NavMeshAgent agent = customer.GetComponent<NavMeshAgent>();
+            agent.destination = position;
+            
+            
         }
         
         

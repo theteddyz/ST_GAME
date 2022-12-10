@@ -9,6 +9,8 @@ TagManager:
   - Seat
   - Waypoint
   - QueuePosition
+  - ChairLeft
+  - ChairRight
   layers:
   - Default
   - TransparentFX

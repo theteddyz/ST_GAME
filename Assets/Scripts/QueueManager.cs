@@ -45,21 +45,15 @@ public class QueueManager : MonoBehaviour
        
         entrancePosition = queue[5].queuePlace.transform.position;
         customerList = new List<GameObject>();
-
-
-    }
-
-    private void Update()
-    {
-
-        StartCoroutine(UpdateQueueWaitTime());
-    }
-
-    IEnumerator PositionChecker(List<Vector3> positionList)
-    {
         
-        yield break;
+      
+
+
     }
+
+ 
+
+    
     
     
     [System.Serializable]
@@ -80,17 +74,16 @@ public class QueueManager : MonoBehaviour
 
     public void OnTriggerEnter2D(Collider2D col)
     {
+        if (col.gameObject.tag == "Customer")
+        {
+            NavMeshAgent agent = col.gameObject.GetComponent<NavMeshAgent>();
+            agent.autoBraking = true;
+            customerList.Add(col.gameObject);
+            Debug.Log(customerList.Count);
+            agent.destination = (positionList[customerList.IndexOf(col.gameObject)]);
+        }
         
-        NavMeshAgent agent = col.gameObject.GetComponent<NavMeshAgent>();
-        agent.autoBraking = true;
-        customerList.Add(col.gameObject);
-        Debug.Log(customerList.Count);
-        agent.destination = (positionList[customerList.IndexOf(col.gameObject)]);
         
-        
-
-
-
     }
     
     public bool CanAddCustomer()
@@ -100,28 +93,21 @@ public class QueueManager : MonoBehaviour
 
     
 
-    IEnumerator RelocateCustomers()
+    public IEnumerator RelocateCustomers()
     {
-        yield return new WaitForSeconds(5);
-        yield return new WaitUntil(() => gameHandler.isOrdering == false);
+        
         for (int i = 0; i < customerList.Count; i++)
         {
-
-
+            
+            
             customerList[i].GetComponent<NavMeshAgent>().destination = positionList[i];
 
-        }
-       
+        } yield break;
     }
 
+    
 
-    IEnumerator CustomerMoveTo(Vector2 positon, GameObject customer)
-    {
-        NavMeshAgent agent = customer.GetComponent<NavMeshAgent>();
-        agent.destination = positon;
-        yield break;
-    }
-     IEnumerator GetFirstInQueue()
+    public IEnumerator GetFirstInQueue()
     {
         GameObject customer;
         if (customerList.Count == 0)
@@ -130,41 +116,20 @@ public class QueueManager : MonoBehaviour
         }
         else
         {
-            yield return new WaitUntil(() => gameHandler.isOrdering == false);
+            
+            
             customer = customerList[0];
             NavMeshAgent agent = customer.GetComponent<NavMeshAgent>();
             agent.destination = gameObject.transform.parent.position;
             customerList.RemoveAt(0);
-            yield return new WaitUntil(() => gameHandler.isOrdering == false);
-            StartCoroutine(RelocateCustomers());
-            Debug.Log(customerList.Count);
-            Debug.Log(positionList.Count);
+            
             yield break;
         }
     }
 
-     IEnumerator UpdateQueueWaitTime()
-     {
-         yield return new WaitUntil(() => gameHandler.isOrdering == false);
-         yield return new WaitForSeconds(3);
-         if (gameHandler.isOrdering == false)
-         {
-             StartCoroutine(GetFirstInQueue());
-         }
-     }
+    
      
-     public void MoveTo(Vector3 position, GameObject customer)
-     {
-
-
-         NavMeshAgent agent = customer.GetComponent<NavMeshAgent>();
-            
-            
-         agent.destination = position;
-
-           
-
-     }
+     
 
     
 }

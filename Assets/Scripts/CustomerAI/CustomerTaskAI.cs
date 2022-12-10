@@ -162,9 +162,17 @@ using System.Linq;
         private void SittingDown(Transform chair)
         {
             AllIsTaken();
-            gameObject.transform.position = chair.transform.position ;
+            gameObject.transform.position = chair.transform.position;
+            
             gameObject.GetComponent<SpriteRenderer>().enabled = false;
-            gameObject.transform.GetChild(1).gameObject.SetActive(true);
+            if (chair.GetChild(0).tag == "ChairLeft")
+            {
+                gameObject.transform.GetChild(1).gameObject.SetActive(true);
+            }
+            else
+            {
+                gameObject.transform.GetChild(2).gameObject.SetActive(true);
+            }
             GetComponent<NavMeshAgent>().enabled = false;
             GetComponent<CustomerTaskAI>().enabled = false;
             GetComponent<BoxCollider2D>().isTrigger = true;
@@ -278,9 +286,7 @@ using System.Linq;
 
        IEnumerator VerifyExit()
        {
-           isNotMoving();
-           yield return new WaitUntil((() => isNotMoving() == true));
-           yield return new WaitForSeconds(1);
+           yield return new WaitForSeconds(15);
            Destroy(gameObject);
            yield break;
        }

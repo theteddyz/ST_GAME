@@ -29,7 +29,11 @@ using UnityEngine.AI;
        
 
 
-
+        private void Awake()
+        {
+            queueManger = transform.Find("Waypoints").transform.Find("Order").transform.Find("QueuePosition (5)").GetComponent<QueueManager>();
+            isOrdering = false;
+        }
         private void Start()
         {
             
@@ -69,6 +73,9 @@ using UnityEngine.AI;
             StartCoroutine(spawnCustomer());
 
         }
+
+       
+
         [System.Serializable]
         public class Seats
         {
@@ -101,24 +108,26 @@ using UnityEngine.AI;
             
             if (col.gameObject.tag == "Customer")
             {
-
-
-                StartCoroutine(col.gameObject.GetComponent<CustomerTaskAI>().ExecuteTask_Order());
                 isOrdering = true;
+                StartCoroutine(col.gameObject.GetComponent<CustomerTaskAI>().ExecuteTask_Order());
+
             }
             
         }
 
         private void OnTriggerExit2D(Collider2D col)
         {
-            StartCoroutine(IsOrderingSwitch(col.gameObject));
+            
+            isOrdering = false;
+            col.gameObject.tag = "Untagged";
+
         }
         
 
         IEnumerator spawnCustomer()
         {
             
-            yield return new WaitForSeconds(3);
+            yield return new WaitForSeconds(2);
             GameObject gameObject;
             int ranroll = UnityEngine.Random.Range(0, 4);
             
@@ -137,11 +146,12 @@ using UnityEngine.AI;
 
         IEnumerator IsOrderingSwitch(GameObject customer)
         {
-            yield return new WaitForSeconds(4);
             if (customer.tag == "Customer")
             {
-                isOrdering = false;
+                
             }
+
+            yield return null;
         }
 
         
