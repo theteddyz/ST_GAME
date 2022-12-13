@@ -15,27 +15,17 @@ public class PlayController : MonoBehaviour
 
     private void Update()
     {
-        ProcessInputs();
-    }
-
-    private void FixedUpdate()
-    {
-        Move();
-    }
-
-    void ProcessInputs()
-    {
-        movement.x = Input.GetAxisRaw("Horizontal");
-        movement.y = Input.GetAxisRaw("Vertical");
+        rb.velocity = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")) * moveSpeed;
         
-        movement = new Vector2(movement.x, movement.y).normalized;
-        animator.SetFloat("Horizontal", movement.x);
-        animator.SetFloat("Verticle", movement.y);
-        animator.SetFloat("Speed",movement.sqrMagnitude);
-    }
+        
+        animator.SetFloat("Horizontal", rb.velocity.x);
+        animator.SetFloat("Vertical", rb.velocity.y);
+        if (Input.GetAxisRaw("Horizontal") == 1 || Input.GetAxisRaw("Horizontal") == -1 || Input.GetAxisRaw("Vertical") == 1 || Input.GetAxisRaw("Vertical") == -1)
+        {
+            animator.SetFloat("lastMoveX", Input.GetAxisRaw("Horizontal"));
+            animator.SetFloat("lastMoveY", Input.GetAxisRaw("Vertical"));
+        }
 
-    void Move()
-    {
-        rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
+
     }
 }

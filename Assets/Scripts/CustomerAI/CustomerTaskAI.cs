@@ -23,14 +23,6 @@ using System.Linq;
         public int selectedSeatChoice;
         private bool allIsTaken =false;
         public int orginLocation;
-        
-
-
-
-
-
-
-
         public int choiceNumber;
 
 
@@ -122,6 +114,7 @@ using System.Linq;
             GetComponent<CustomerTaskAI>().enabled = true;
             gameObject.GetComponent<SpriteRenderer>().enabled = true;
             gameObject.transform.GetChild(1).gameObject.SetActive(false);
+            gameObject.transform.GetChild(2).gameObject.SetActive(false);
             GameHandler.seats[selectedSeatChoice].isTaken = false;
             agent.destination =(GameHandler.waypoints[ranroll].addedWaypoint.transform.position);
             

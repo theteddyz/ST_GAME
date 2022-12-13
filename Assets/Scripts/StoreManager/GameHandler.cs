@@ -7,6 +7,7 @@ using System.Net.Mime;
 using CodeMonkey.Utils;
 using ForTeddy.Databases;
 using Unity.VisualScripting;
+using UnityEditor.VersionControl;
 using UnityEngine.AI;
 
 
@@ -19,11 +20,13 @@ using UnityEngine.AI;
         
         public static List<_waypoint> waypoints = new List<_waypoint>();
         public static List<String> menu = new List<String>();
+        public static List<int> menuPrice = new List<int>();
         public static  List<Seats> seats = new List<Seats>();
         private GameObject[] chairs;
         private GameObject[] waypoint;
         [SerializeField] public Sprite sittingSprite;
         private QueueManager queueManger;
+        private EconomyManager economyManager;
         public  bool isOrdering;
         
        
@@ -32,15 +35,20 @@ using UnityEngine.AI;
         private void Awake()
         {
             queueManger = transform.Find("Waypoints").transform.Find("Order").transform.Find("QueuePosition (5)").GetComponent<QueueManager>();
+            economyManager = GetComponent<EconomyManager>();
             isOrdering = false;
         }
         private void Start()
         {
             
-
             menu.Add("coffee");
-            menu.Add("cake");
-            menu.Add("muffin");
+            menuPrice.Add(1);
+            menu.Add("Cake");
+            menuPrice.Add(4);
+            menu.Add("Muffin");
+            menuPrice.Add(2);
+
+            
 
             chairs = GameObject.FindGameObjectsWithTag("Seat");
             seats.Clear();
@@ -117,10 +125,13 @@ using UnityEngine.AI;
 
         private void OnTriggerExit2D(Collider2D col)
         {
-            
-            isOrdering = false;
-            col.gameObject.tag = "Untagged";
+            if (col.gameObject.tag == "Customer")
+            {
+                isOrdering = false;
+                col.gameObject.tag = "Untagged";
+                StartCoroutine(economyManager.Sale(menuPrice[col.GetComponent<CustomerTaskAI>().choiceNumber]));
 
+            }
         }
         
 

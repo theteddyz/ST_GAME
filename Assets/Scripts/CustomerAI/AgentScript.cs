@@ -33,6 +33,12 @@ public class AgentScript : MonoBehaviour
       animator.SetFloat("Horizontal", agent.velocity.x);
       animator.SetFloat("Vertical", agent.velocity.y);
 
+      if (agent.velocity.x == 1 || agent.velocity.x == -1 || agent.velocity.y == 1 || agent.velocity.y == -1)
+      {
+         animator.SetFloat("lastMoveX", agent.velocity.x);
+         animator.SetFloat("lastMoveY", agent.velocity.y);
+      }
+
 
    }
 
